@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 const cookieParser = require('cookie-parser');
 const app = express();
 
@@ -24,6 +25,7 @@ const connect = async () => {
 connect()
 
 app.use("/api", authRoutes)
+app.use("/contact" ,contactRoutes )
 
 
 const PORT = process.env.PORT || 3000;

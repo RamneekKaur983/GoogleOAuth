@@ -1,0 +1,10 @@
+{
+    "env" : {
+        "CLIENT_ID" : "758865058488-fck1rbc3s7u937osnkc8t10pub1p9cjo.apps.googleusercontent.com",
+        "CLIENT_SECRET": "fUPvO2l9ZSQbRd_ZqJx96vmV",
+        "DB_NAME": "task-manager",
+        "DB_PASSWORD": "0Yw1RYsOkQLk3lCh",
+        "DB_USER" : "taskManager",
+        "JWT_KEY" : "mysupersecretkeyforsignupandlogin"
+    }
+}

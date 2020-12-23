@@ -1,101 +1,76 @@
 const UserModel = require("../models/User");
-const jwt = require('jsonwebtoken');
-
+const jwt = require("jsonwebtoken");
+const HttpError = require("../models/httpError"); //Helper function for Handle error
 
 // handle errors
 const handleErrors = (err) => {
-  console.log(err.message, err.code);
-  let errors = { email: '', password: '' };
-
-  // incorrect email
-  if (err.message === 'incorrect email') {
-    errors.email = 'That email is not registered';
-  }
-
-  // incorrect password
-  if (err.message === 'incorrect password') {
-    errors.password = 'That password is incorrect';
+  let errors = { email: "", password: "" };
+  // incorrect credentials
+  if (
+    err.message === "incorrect email" ||
+    err.message === "incorrect password"
+  ) {
+    return new HttpError(
+      "Could not find the identity user, credentials seem to be wrong.",
+      401
+    );
   }
 
   // duplicate email error
   if (err.code === 11000) {
-    errors.email = 'that email is already registered';
-    return errors;
+    return new HttpError("User already exist", 422);
   }
 
   // validation errors
-  if (err.message.includes('user validation failed')) {
-    // console.log(err);
+  if (err.message.includes("user validation failed")) {
     Object.values(err.errors).forEach(({ properties }) => {
-      // console.log(val);
-      // console.log(properties);
       errors[properties.path] = properties.message;
     });
   }
 
   return errors;
-}
+};
 
 // create json web token
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id) => {
-  return jwt.sign({ id }, 'net ninja secret', {
-    expiresIn: maxAge
+  return jwt.sign({ id }, process.env.JWT_KEY, {
+    expiresIn: maxAge,
   });
 };
 
-// controller actions
-module.exports.signup_get = (req, res) => {
-  res.send("Signup")
-}
-
-module.exports.login_get = (req, res) => {
-  res.send("Login")
-}
-
-module.exports.signup_post = async (req, res) => {
-
-
-
+//SignUp Controller
+module.exports.signup_post = async (req, res, next) => {
   try {
-    console.log(req.body)
-    const { email, password } = req.body;
-    const user = await new UserModel.User({ method: 'local', local: { email, password } });
-    console.log('User', user)
-    await user.save()
+    const { name, email, password } = req.body;
+    const user = await new UserModel.User({
+      method: "local",
+      local: { name, email, password },
+    });
+    await user.save();
     const token = createToken(user._id);
-
-    res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(201).json({ user: user._id });
-  }
-  catch (err) {
-    console.log(err)
+    res.status(201).json({ userId: user._id, token: token });
+  } catch (err) {
     const errors = handleErrors(err);
-    res.status(400).json({ errors });
+    return next(errors);
   }
+};
 
-}
-
-module.exports.login_post = async (req, res) => {
-  console.log(req.body)
-
-
+//Login Controller
+module.exports.login_post = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await UserModel.User.login(email, password);
     const token = createToken(user._id);
-    res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).json({ user: user._id });
-  }
-  catch (err) {
-
+    res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
+    res.status(201).json({ userId: user._id, token });
+  } catch (err) {
     const errors = handleErrors(err);
-    res.status(400).json({ errors });
+    return next(errors);
   }
+};
 
-}
-
+//Google0Auth
 module.exports.googleOAuth = async (req, res, next) => {
- 
-  res.status(200).json(req.user)
-}
+  res.status(200).json(req.user.token);
+};

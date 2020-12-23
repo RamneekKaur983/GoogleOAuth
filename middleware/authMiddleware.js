@@ -1,22 +1,20 @@
-const jwt = require('jsonwebtoken');
+const HttpError = require("../models/http-error");
+const jwt = require("jsonwebtoken");
 
-const requireAuth = (req, res, next) => {
-  const token = req.cookies.jwt;
-
-  // check json web token exists & is verified
-  if (token) {
-    jwt.verify(token, 'net ninja secret', (err, decodedToken) => {
-      if (err) {
-        console.log(err.message);
-
-      } else {
-        console.log(decodedToken);
-        next();
-      }
-    });
-  } else {
-    console.log("Unauthorised")
+module.exports = (req, res, next) => {
+  if (req.method === "OPTIONS") {
+    return next();
+  }
+  try {
+    //During any secure api request in frontend...Provider header with value --> {Authorization : "Bearer " + token }
+    const token = req.headers.authorization.split(" ")[1]; //Authorization: 'BEARER TOKEN'
+    if (!token) {
+      return next(new HttpError("Authentication Failed", 401));
+    }
+    const decodedToken = jwt.verify(token, process.env.JWT_KEY);
+    req.userData = { userId: decodedToken.userId };
+    next();
+  } catch (err) {
+    return next(new HttpError("Authentication Failed", 401));
   }
 };
-
-module.exports = { requireAuth };

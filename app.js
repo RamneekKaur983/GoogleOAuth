@@ -1,31 +1,54 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const authRoutes = require('./routes/authRoutes');
-const cookieParser = require('cookie-parser');
+const express = require("express");
+const mongoose = require("mongoose");
+const authRoutes = require("./routes/authRoutes");
+const passport = require("passport"); // at header
+require("./config/passport");
+
 const app = express();
 
-
+//Parsing postReq data to JSON
 app.use(express.json());
-app.use(cookieParser());
+app.use(passport.initialize());
 
+//To pass CORS origin policy..which helps to run React and Node separately on diff. hosts
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
+  next();
+});
 
+//Routes
+app.use("/api", authRoutes);
 
-const connect = async () => {
-  try {
-    const conn = await mongoose.connect('mongodb+srv://Ramneek:iamunique@cluster0.cyzml.mongodb.net/JWT', { useNewUrlParser: true, useUnifiedTopology: true, createIndexes: true });
-    console.log('Database Connected:', conn.connection.host)
+//For any unknown API request
+app.use((error, req, res, next) => {
+  if (res.headerSent) {
+    return next(error);
   }
-  catch {
-    console.log("Database coudn't connect")
-  }
-}
+  res.status(error.code || 500);
+  res.json({ message: error.message || "An unknown error occured" });
+});
 
-connect()
-
-app.use("/api", authRoutes)
-
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+//Setting up database and backend Server
+mongoose
+  .connect(
+    `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0-shard-00-00.kyz02.mongodb.net:27017,cluster0-shard-00-01.kyz02.mongodb.net:27017,cluster0-shard-00-02.kyz02.mongodb.net:27017/${process.env.DB_NAME}?ssl=true&replicaSet=atlas-72j8yq-shard-0&authSource=admin&retryWrites=true&w=majority`,
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+    }
+  )
+  .then(() => {
+    app.listen(process.env.PORT || 8000, () => {
+      console.log(`MongoDB Connected and Connection started at 8000`);
+      console.log("Local -> http://localhost:8000");
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+  });

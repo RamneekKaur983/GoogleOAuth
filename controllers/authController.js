@@ -11,7 +11,7 @@ const handleErrors = (err) => {
     err.message === "incorrect password"
   ) {
     return new HttpError(
-      "Could not find the identity user, credentials seem to be wrong.",
+      "Could not find the identity user, Credentials seem to be wrong.",
       401
     );
   }
@@ -22,7 +22,7 @@ const handleErrors = (err) => {
   }
 
   // validation errors
-  if (err.message.includes("user validation failed")) {
+  if (err.message.includes("User validation failed")) {
     Object.values(err.errors).forEach(({ properties }) => {
       errors[properties.path] = properties.message;
     });
@@ -68,9 +68,4 @@ module.exports.login_post = async (req, res, next) => {
     const errors = handleErrors(err);
     return next(errors);
   }
-};
-
-//Google0Auth
-module.exports.googleOAuth = async (req, res, next) => {
-  res.status(200).json(req.user.token);
 };

@@ -1,14 +1,18 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/authRoutes");
+const googleRoutes = require("./routes/googleRoutes");
 const passport = require("passport"); // at header
-require("./config/passport");
 
 const app = express();
 
 //Parsing postReq data to JSON
 app.use(express.json());
+
+// app.use(passport.initialize());
 app.use(passport.initialize());
+require("./config/passport");
 
 //To pass CORS origin policy..which helps to run React and Node separately on diff. hosts
 app.use((req, res, next) => {
@@ -23,6 +27,7 @@ app.use((req, res, next) => {
 
 //Routes
 app.use("/api", authRoutes);
+app.use("/", googleRoutes);
 
 //For any unknown API request
 app.use((error, req, res, next) => {

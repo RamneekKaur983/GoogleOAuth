@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
   local: {
     name: {
       type: String,
-      required: true,
     },
     email: {
       type: String,
@@ -28,7 +27,12 @@ const userSchema = new mongoose.Schema({
     id: {
       type: String,
     },
-    email: String,
+    email: {
+      type: String,
+    },
+    token: {
+      type: String,
+    },
   },
 });
 

@@ -2,6 +2,7 @@ const mongoose= require('mongoose')
 const { isEmail } = require('validator')
 const bcrypt= require('bcrypt')
 
+
 const userSchema = new mongoose.Schema({
 
   method : {
@@ -22,7 +23,11 @@ const userSchema = new mongoose.Schema({
       type: String,
      
       minlength: [6, 'Minimum password length is 6 characters'],
-    }
+    } , 
+    secretToken : String , 
+    active : Boolean , 
+    resetPasswordToken: String,
+    resetPasswordExpires: Date 
      
   } , 
     google :{
@@ -44,6 +49,9 @@ userSchema.pre('save', async function(next) {
     }
     const salt = await bcrypt.genSalt();
     this.local.password = await bcrypt.hash(this.local.password, salt);
+
+
+
     console.log("I am in pre" , this.local.email)
     next();
   });
@@ -53,6 +61,10 @@ userSchema.statics.login = async function(email, password) {
     const user = await this.findOne({ "local.email":email });
     if (user) {
       const auth = await bcrypt.compare(password, user.local.password);
+      if(user.local.active==false)
+      {
+        throw Error('email not verified')
+      }
       if (auth) {
         return user;
       }

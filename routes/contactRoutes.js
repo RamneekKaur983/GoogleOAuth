@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const contactController = require('../controllers/contactController');
-const router = require('./authRoutes');
+const router = Router()
 
 router.post('/contactUs'  , contactController.contact_us  )
 

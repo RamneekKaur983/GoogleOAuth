@@ -51,6 +51,10 @@ router.get('/login', authController.login_get);
 router.post('/login', authController.login_post);
 router.post('/oauth/google' , 
   passport.authenticate('googleToken' , {session : false}), authController.googleOAuth)
+router.post('/verify' ,   authController.verify)
+router.post('/forgot'  ,authController.forgotPassword)
+router.post('/reset/:token' , authController.resetPassword)
+
 
 
 

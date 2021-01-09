@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const workspaceRoutes = require('./routes/workspaceRoutes');
 const cookieParser = require('cookie-parser');
 const app = express();
 
@@ -26,6 +27,8 @@ connect()
 
 app.use("/api", authRoutes)
 app.use("/contact" ,contactRoutes )
+app.use("/api/dashboard/workspace" , workspaceRoutes)
+
 
 
 const PORT = process.env.PORT || 3000;
